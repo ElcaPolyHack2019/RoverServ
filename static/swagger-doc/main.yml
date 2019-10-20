@@ -1,0 +1,7 @@
+A simple hello to verify that the server works.
+---
+responses:
+  200:
+    description: A hello message.
+    schema:
+      type: string
