@@ -1,0 +1,5 @@
+type: object
+properties:
+  rover_id:
+    description: Id of the rover.
+    type: string

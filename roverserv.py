@@ -23,6 +23,7 @@ def main():
 
 
 @app.route("/api/<rover_id>")
+@swag_from("static/swagger-doc/rover.yml")
 def rover(rover_id: str):
     rover = next(
         (rover for rover in rovers if rover.rover_id == rover_id), None)
