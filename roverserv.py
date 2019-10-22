@@ -1,8 +1,9 @@
 from flask import Flask, request, jsonify, abort
 from flasgger import Swagger, swag_from
-import roslibpy
 from roverserv import Rover
 import yaml
+
+import time
 
 ##############################
 # Globals (cough)
@@ -50,9 +51,9 @@ def topics(rover_id: str):
     rover = get_rover_by_id(rover_id)
     if rover is None:
         abort(404, description=f"Rover with id {rover_id} not found.")
-    client = get_socket(rover)
-    topics = get_topics(client)
-    close_client(client)
+
+    topics = rover.get_topics()
+
     return jsonify(topics['topics'])
 
 
@@ -62,29 +63,56 @@ def forward(rover_id: str):
     rover = get_rover_by_id(rover_id)
     if rover is None:
         abort(404, description=f"Rover with id {rover_id} not found.")
+
     rover.drive_forward(duration)
+
     return jsonify({'success': 'ok'})
 
-##############################
-# Web Sockets
-##############################
+
+@app.route("/api/<rover_id>/backward")
+def backward(rover_id: str):
+    duration = float(is_none(request.args.get("t"), 1.0))
+    rover = get_rover_by_id(rover_id)
+    if rover is None:
+        abort(404, description=f"Rover with id {rover_id} not found.")
+
+    rover.drive_backward(duration)
+
+    return jsonify({'success': 'ok'})
 
 
-def get_socket(rover: Rover):
-    client = roslibpy.Ros(host=rover.bridge_host, port=rover.bridge_port)
-    client.run()
-    return client
+@app.route("/api/<rover_id>/rotate")
+def rotate(rover_id: str):
+    duration = float(is_none(request.args.get("t"), 1.0))
+    direction = str(is_none(request.args.get("d"), "left"))
+    rover = get_rover_by_id(rover_id)
+    if rover is None:
+        abort(404, description=f"Rover with id {rover_id} not found.")
+
+    if (direction == 'left' or direction == 'l' or direction == 'ccw'):
+        rover.rotate_ccw(duration)
+    else:
+        rover.rotate_cw(duration)
+
+    return jsonify({'success': 'ok'})
 
 
-def get_topics(client):
-    service = roslibpy.Service(client, '/rosapi/topics', 'rosapi/Topics')
-    request = roslibpy.ServiceRequest()
-    result = service.call(request)
-    return result
+@app.route("/api/<rover_id>/stop")
+def stop(rover_id: str):
+    rover = get_rover_by_id(rover_id)
+    if rover is None:
+        abort(404, description=f"Rover with id {rover_id} not found.")
+    rover.stop()
+    return jsonify({'success': 'ok'})
 
 
-def close_client(client):
-    client.close()
+@app.route("/api/<rover_id>/led")
+def led(rover_id: str):
+    rover = get_rover_by_id(rover_id)
+    if rover is None:
+        abort(404, description=f"Rover with id {rover_id} not found.")
+    rover.led()
+    return jsonify({'success': 'ok'})
 
 ##############################
 # Misc
