@@ -2,17 +2,27 @@ from flask import Flask, request, jsonify, abort
 from flasgger import Swagger, swag_from
 import roslibpy
 from roverserv import Rover
+import yaml
 
 ##############################
 # Globals (cough)
 ##############################
 
+def initializeRoverList():
+    roverList = []
+    with open("rovers.yml", 'r') as stream:
+        try:
+            dataMap = yaml.safe_load(stream)
+            for roverData in dataMap:
+                roverList.append(Rover(roverData['name'], roverData['ip'], roverData['port']))
+        except yaml.YAMLError as exc:
+            print(exc)
+    return roverList
+
 app = Flask(__name__)
 swagger = Swagger(app)
 ros = None
-rovers = [
-    Rover('1', 'localhost', 9090)
-]
+rovers = initializeRoverList()
 
 ##############################
 # Web API
