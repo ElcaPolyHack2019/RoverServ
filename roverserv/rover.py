@@ -14,16 +14,18 @@ class Rover:
         self.gps_y = 0
         self.gps_orientation = 0
 
-        self.client = self.get_client()
+        self.setup_client()
         self.setup_publishers()
 
     def __del__(self):
-        self.client.terminate()
+        if (self.client):
+            self.client.terminate()
 
-    def get_client(self):
-        client = roslibpy.Ros(host=self.bridge_host, port=self.bridge_port)
-        client.run()
-        return client
+    def setup_client(self):
+        print(f'Setting up rover {self.rover_id} on {self.bridge_host}:{self.bridge_port}')
+        self.client = None
+        self.client = roslibpy.Ros(host=self.bridge_host, port=self.bridge_port)
+        self.client.run()
 
     def setup_publishers(self):
         self.joyPublisher = roslibpy.Topic(self.client, '/elcaduck/joy', 'sensor_msgs/Joy', queue_size=1, queue_length=1)
