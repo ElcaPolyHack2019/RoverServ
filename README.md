@@ -30,3 +30,10 @@ https://github.com/crossbario/autobahn-python/pull/1259/files
 
 # API
 View the api by connecting to http://ip:5000/apidocs/
+
+# Docker
+```
+docker build -t elcalan/roverserv:latest .
+docker run -it --rm -p 5000:5000 elcalan/roverserv:latest
+```
+
