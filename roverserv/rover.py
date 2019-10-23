@@ -13,22 +13,28 @@ class Rover:
         self.gps_x = 0
         self.gps_y = 0
         self.gps_orientation = 0
-
-        self.setup_client()
-        self.setup_publishers()
+        self.client = None
 
     def __del__(self):
         if (self.client):
             self.client.terminate()
 
     def setup_client(self):
-        print(f'Setting up rover {self.rover_id} on {self.bridge_host}:{self.bridge_port}')
-        self.client = None
-        self.client = roslibpy.Ros(host=self.bridge_host, port=self.bridge_port)
-        self.client.run()
+        print(
+            f'Setting up rover {self.rover_id} on {self.bridge_host}:{self.bridge_port}')
+        try:
+            self.client = roslibpy.Ros(
+                host=self.bridge_host, port=self.bridge_port)
+            self.client.run()
+            return True
+        except:
+            print(f'Failed to connect to {self.rover_id}')
+            self.client = None
+            return False
 
     def setup_publishers(self):
-        self.joyPublisher = roslibpy.Topic(self.client, '/elcaduck/joy', 'sensor_msgs/Joy', queue_size=1, queue_length=1)
+        self.joyPublisher = roslibpy.Topic(
+            self.client, '/elcaduck/joy', 'sensor_msgs/Joy', queue_size=1, queue_length=1)
         self.joyPublisher.advertise()
 
     def release_publishers(self):
@@ -36,7 +42,14 @@ class Rover:
 
     def ensure_is_connected(self):
         self.lock.acquire()
-        if (not self.client.is_connected):
+        if (not self.client):
+            # First initial connection
+            result = self.setup_client()
+            if (result):
+                # The connection succeeded, setup the publishers
+                self.setup_publishers()
+        elif (not self.client.is_connected):
+            # The client is running but not connected anymore, reconnect
             print(f"Reconnecting Rover {self.rover_id}")
             self.release_publishers()
             self.client.close()
@@ -46,7 +59,7 @@ class Rover:
 
     def drive_forward(self, duration: float):
         self.ensure_is_connected()
-        
+
         self.joyPublisher.publish(roslibpy.Message({
             'buttons': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             'axes': [0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
@@ -94,10 +107,11 @@ class Rover:
         }))
 
     def led(self):
-        talker = roslibpy.Topic(
-            self.client, '/elcaduck/led_emitter_node/current_led_state', 'std_msgs/String')
-        talker.publish(roslibpy.Message({'data': 'OFF'}))
-        talker.unadvertise()
+        service = roslibpy.Service(
+            self.client, '/elcaduck/led_emitter_node/set_pattern', 'std_msgs/String')
+        #request = roslibpy.ServiceRequest("pattern_name: {data: RED}")
+        request = roslibpy.ServiceRequest({'data': 'RED'})
+        result = service.call(request)
 
     def update_gps(self):
         # TODO
