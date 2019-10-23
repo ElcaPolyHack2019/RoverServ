@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, abort
 from flasgger import Swagger, swag_from
 from roverserv import Rover
+from roverserv import Gps
 import yaml
 
 import time
@@ -33,6 +34,7 @@ template = {
 swagger = Swagger(app, template=template)
 ros = None
 rovers = initializeRoverList()
+gps = Gps()
 
 ##############################
 # Web API
