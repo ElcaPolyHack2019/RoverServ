@@ -27,23 +27,37 @@ class Gps:
         for detection in message['detections']:
             id = detection['id'][0]
 
-            position = detection['pose']['pose']['pose']['position']
-            orientation = detection['pose']['pose']['pose']['orientation']
+            position = Gps.invertY(detection['pose']['pose']['pose']['position'])
+            orientation = Gps.invertY(detection['pose']['pose']['pose']['orientation'])
+            reference = { 'w': 0.0, 'x': 1.0, 'y': 0.0, 'z': 0.0 }
+            rotated = Gps.mult(Gps.mult(orientation, reference), Gps.conjugate(orientation))
+            angle = math.atan2(rotated['y'], rotated['x']) * 180.0 / math.pi
 
-            x = round(position['x'], 2)
-            y = round(position['y'], 2)
-            z = round(position['z'], 2)
+            self.last_positions[id] = GpsPosition(id, position['x'], position['y'], angle)
+            # if (id == 53):
+            #     print(rotated)
+            #     print(angle)
+    
+    @staticmethod
+    def mult(p, q):
+        return {
+            'w': p['w']*q['w'] - p['x']*q['x'] - p['y']*q['y'] - p['z']*q['z'],
+            'x': p['w']*q['x'] + p['x']*q['w'] + p['y']*q['z'] - p['z']*q['y'],
+            'y': p['w']*q['y'] + p['y']*q['w'] + p['z']*q['x'] - p['x']*q['z'],
+            'z': p['w']*q['z'] + p['z']*q['w'] + p['x']*q['y'] - p['y']*q['x']
+        }
 
-            rot_x = orientation['x']
-            rot_y = orientation['y']
-            rot_z = orientation['z']
-            rot_w = orientation['w']
-
-            roll = round(math.degrees(math.atan2(2*rot_y*rot_w + 2*rot_x*rot_z, 1 - 2*rot_y*rot_y - 2*rot_z*rot_z)) % 360, 0)
-            pitch = round(math.degrees(math.atan2(2*rot_x*rot_w + 2*rot_y*rot_z, 1 - 2*rot_x*rot_x - 2*rot_z*rot_z)) % 360, 0)
-            yaw = round(math.degrees(math.asin(2*rot_x*rot_y + 2*rot_z*rot_w)) % 360, 0)
-
-            self.last_positions[id] = GpsPosition(id, x, y, pitch)
-
-            # Debug
-            #print(f'{id}: {x}/{y} / {roll}/{pitch}/{yaw}')
+    @staticmethod
+    def conjugate(q):
+        return {
+            'w': q['w'],
+            'x': -q['x'],
+            'y': -q['y'],
+            'z': -q['z'],
+        }
+    
+    @staticmethod
+    def invertY(v):
+        res = v.copy()
+        res['y'] = -res['y']
+        return res
