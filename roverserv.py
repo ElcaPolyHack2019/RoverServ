@@ -21,7 +21,16 @@ def initializeRoverList():
     return roverList
 
 app = Flask(__name__)
-swagger = Swagger(app)
+# TODO: How to extract this into .yml?
+template = {
+  "info": {
+    "title": "Polyhack 2019 Elca rover server API",
+    "description": "Overview of endpoints for controlling the rover."
+  },
+  "host": "mysite.com",  # overrides localhost:500
+  "basePath": "/api",  # base bash for blueprint registration
+}
+swagger = Swagger(app, template=template)
 ros = None
 rovers = initializeRoverList()
 
@@ -47,6 +56,7 @@ def rover(rover_id: str):
 
 
 @app.route("/api/<rover_id>/topics")
+@swag_from("static/swagger-doc/topics.yml")
 def topics(rover_id: str):
     rover = get_rover_by_id(rover_id)
     if rover is None:
@@ -58,6 +68,7 @@ def topics(rover_id: str):
 
 
 @app.route("/api/<rover_id>/forward")
+@swag_from("static/swagger-doc/forward.yml")
 def forward(rover_id: str):
     duration = float(is_none(request.args.get("t"), 1.0))
     rover = get_rover_by_id(rover_id)
@@ -70,6 +81,7 @@ def forward(rover_id: str):
 
 
 @app.route("/api/<rover_id>/backward")
+@swag_from("static/swagger-doc/backward.yml")
 def backward(rover_id: str):
     duration = float(is_none(request.args.get("t"), 1.0))
     rover = get_rover_by_id(rover_id)
@@ -82,6 +94,7 @@ def backward(rover_id: str):
 
 
 @app.route("/api/<rover_id>/rotate")
+@swag_from("static/swagger-doc/rotate.yml")
 def rotate(rover_id: str):
     duration = float(is_none(request.args.get("t"), 1.0))
     direction = str(is_none(request.args.get("d"), "left"))
@@ -98,6 +111,7 @@ def rotate(rover_id: str):
 
 
 @app.route("/api/<rover_id>/stop")
+@swag_from("static/swagger-doc/stop.yml")
 def stop(rover_id: str):
     rover = get_rover_by_id(rover_id)
     if rover is None:
@@ -107,6 +121,7 @@ def stop(rover_id: str):
 
 
 @app.route("/api/<rover_id>/led")
+@swag_from("static/swagger-doc/led.yml")
 def led(rover_id: str):
     rover = get_rover_by_id(rover_id)
     if rover is None:

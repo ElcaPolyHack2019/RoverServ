@@ -1,0 +1,13 @@
+Gets all the ROS topics of a rover.
+---
+parameters:
+  - name: rover_id
+    in: path
+    type: string
+    description: The id of the rover.
+responses:
+  404:
+    description: The rover with the given id was not found.
+  200:
+    description: Rover topics
+    
