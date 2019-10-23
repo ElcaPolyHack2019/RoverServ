@@ -1,5 +1,6 @@
 import threading
 import time
+import base64
 import roslibpy
 
 
@@ -14,9 +15,12 @@ class Rover:
         self.gps_y = 0
         self.gps_orientation = 0
         self.client = None
+        self.last_image = None
 
     def __del__(self):
         if (self.client):
+            self.release_publishers()
+            self.release_listeners()
             self.client.terminate()
 
     def setup_client(self):
@@ -40,21 +44,31 @@ class Rover:
     def release_publishers(self):
         self.joyPublisher.unadvertise()
 
+    def setup_listeners(self):
+        self.imageListener = roslibpy.Topic(self.client, '/elcaduck/camera_node/image/compressed', 'sensor_msgs/CompressedImage', throttle_rate=1000)
+        self.imageListener.subscribe(self.image_received_callback)
+
+    def release_listeners(self):
+        self.imageListener.unsubscribe()
+
     def ensure_is_connected(self):
         self.lock.acquire()
         if (not self.client):
             # First initial connection
             result = self.setup_client()
             if (result):
-                # The connection succeeded, setup the publishers
+                # The connection succeeded, setup the publishers/listeners
                 self.setup_publishers()
+                self.setup_listeners()
         elif (not self.client.is_connected):
             # The client is running but not connected anymore, reconnect
             print(f"Reconnecting Rover {self.rover_id}")
             self.release_publishers()
+            self.release_listeners()
             self.client.close()
             self.client.connect()
             self.setup_publishers()
+            self.setup_listeners()
         self.lock.release()
 
     def drive_forward(self, duration: float):
@@ -68,6 +82,8 @@ class Rover:
         self.stop()
 
     def drive_backward(self, duration: float):
+        self.ensure_is_connected()
+
         talker = roslibpy.Topic(
             self.client, '/elcaduck/joy', 'sensor_msgs/Joy')
         talker.publish(roslibpy.Message({
@@ -79,6 +95,8 @@ class Rover:
         talker.unadvertise()
 
     def rotate_cw(self, duration: float):
+        self.ensure_is_connected()
+
         talker = roslibpy.Topic(
             self.client, '/elcaduck/joy', 'sensor_msgs/Joy')
         talker.publish(roslibpy.Message({
@@ -90,6 +108,8 @@ class Rover:
         talker.unadvertise()
 
     def rotate_ccw(self, duration: float):
+        self.ensure_is_connected()
+
         talker = roslibpy.Topic(
             self.client, '/elcaduck/joy', 'sensor_msgs/Joy')
         talker.publish(roslibpy.Message({
@@ -101,17 +121,30 @@ class Rover:
         talker.unadvertise()
 
     def stop(self):
+        self.ensure_is_connected()
+
         self.joyPublisher.publish(roslibpy.Message({
             'buttons': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             'axes': [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         }))
 
+    def get_image(self):
+        self.ensure_is_connected()
+
+        if (not self.last_image):
+            return None
+        decoded_image = base64.decodebytes(str.encode(self.last_image))
+        return decoded_image
+
     def led(self):
+        self.ensure_is_connected()
+
         service = roslibpy.Service(
             self.client, '/elcaduck/led_emitter_node/set_pattern', 'std_msgs/String')
         #request = roslibpy.ServiceRequest("pattern_name: {data: RED}")
         request = roslibpy.ServiceRequest({'data': 'RED'})
         result = service.call(request)
+        return result
 
     def update_gps(self):
         # TODO
@@ -120,11 +153,16 @@ class Rover:
         self.gps_orientation = 0
 
     def get_topics(self):
+        self.ensure_is_connected()
+
         service = roslibpy.Service(
             self.client, '/rosapi/topics', 'rosapi/Topics')
         request = roslibpy.ServiceRequest()
         result = service.call(request)
         return result
+
+    def image_received_callback(self, message):
+        self.last_image = message['data']
 
     def to_json(self):
         return {

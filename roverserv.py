@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, abort
+from flask import Flask, Response, request, jsonify, abort, make_response
 from flasgger import Swagger, swag_from
 from roverserv import Rover
 from roverserv import Gps
@@ -121,6 +121,18 @@ def stop(rover_id: str):
     rover.stop()
     return jsonify({'success': 'ok'})
 
+@app.route("/api/<rover_id>/image")
+def image(rover_id: str):
+    rover = get_rover_by_id(rover_id)
+    if rover is None:
+        abort(404, description=f"Rover with id {rover_id} not found.")
+    image_data = rover.get_image()
+    if (not image_data):
+        abort(Response('No image yet'))
+
+    response = make_response(image_data)
+    response.headers.set('Content-Type', 'image/jpeg')
+    return response
 
 @app.route("/api/<rover_id>/led")
 @swag_from("static/swagger-doc/led.yml")
