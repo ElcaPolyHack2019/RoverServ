@@ -10,26 +10,28 @@ import time
 # Globals (cough)
 ##############################
 
+
 def initializeRoverList():
     roverList = []
     with open("rovers.yml", 'r') as stream:
         try:
             dataMap = yaml.safe_load(stream)
             for roverData in dataMap:
-                roverList.append(Rover(roverData['name'], roverData['ip'], roverData['port']))
+                roverList.append(Rover(roverData['name'], roverData['ip'], roverData['port'], roverData['tag']))
         except yaml.YAMLError as exc:
             print(exc)
     return roverList
 
+
 app = Flask(__name__)
 # TODO: How to extract this into .yml?
 template = {
-  "info": {
-    "title": "Polyhack 2019 Elca rover server API",
-    "description": "Overview of endpoints for controlling the rover."
-  },
-  "host": "mysite.com",  # overrides localhost:500
-  "basePath": "/api",  # base bash for blueprint registration
+    "info": {
+        "title": "Polyhack 2019 Elca rover server API",
+        "description": "Overview of endpoints for controlling the rover."
+    },
+    "host": "mysite.com",  # overrides localhost:500
+    "basePath": "/api",  # base bash for blueprint registration
 }
 swagger = Swagger(app, template=template)
 ros = None
@@ -53,7 +55,10 @@ def rover(rover_id: str):
     rover = get_rover_by_id(rover_id)
     if rover is None:
         abort(404, description=f"Rover with id {rover_id} not found.")
-    rover.update_gps()
+
+    gps_position = gps.get_position(rover.tag)
+    if (gps_position):
+        rover.update_gps(gps_position)
     return jsonify(rover.to_json())
 
 
@@ -65,7 +70,6 @@ def topics(rover_id: str):
         abort(404, description=f"Rover with id {rover_id} not found.")
 
     topics = rover.get_topics()
-
     return jsonify(topics['topics'])
 
 
@@ -78,7 +82,6 @@ def forward(rover_id: str):
         abort(404, description=f"Rover with id {rover_id} not found.")
 
     rover.drive_forward(duration)
-
     return jsonify({'success': 'ok'})
 
 
@@ -91,7 +94,6 @@ def backward(rover_id: str):
         abort(404, description=f"Rover with id {rover_id} not found.")
 
     rover.drive_backward(duration)
-
     return jsonify({'success': 'ok'})
 
 
@@ -108,7 +110,6 @@ def rotate(rover_id: str):
         rover.rotate_ccw(duration)
     else:
         rover.rotate_cw(duration)
-
     return jsonify({'success': 'ok'})
 
 
@@ -118,8 +119,10 @@ def stop(rover_id: str):
     rover = get_rover_by_id(rover_id)
     if rover is None:
         abort(404, description=f"Rover with id {rover_id} not found.")
+
     rover.stop()
     return jsonify({'success': 'ok'})
+
 
 @app.route("/api/<rover_id>/image")
 def image(rover_id: str):
@@ -134,12 +137,14 @@ def image(rover_id: str):
     response.headers.set('Content-Type', 'image/jpeg')
     return response
 
+
 @app.route("/api/<rover_id>/led")
 @swag_from("static/swagger-doc/led.yml")
 def led(rover_id: str):
     rover = get_rover_by_id(rover_id)
     if rover is None:
         abort(404, description=f"Rover with id {rover_id} not found.")
+
     rover.led()
     return jsonify({'success': 'ok'})
 

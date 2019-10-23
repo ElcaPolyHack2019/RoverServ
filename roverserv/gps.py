@@ -1,5 +1,6 @@
 import math
 import roslibpy
+from .gpsposition import GpsPosition
 
 
 class Gps:
@@ -10,10 +11,17 @@ class Gps:
         self.listener = roslibpy.Topic(self.client, '/tag_detections', 'apriltag_ros/AprilTagDetectionArray', throttle_rate=1000, queue_length=10)
         self.listener.subscribe(self.data_received)
 
+        self.last_positions = {}
+
     def __del__(self):
         if (self.client):
             self.listener.unsubscribe()
             self.client.terminate()
+
+    def get_position(self, id: int):
+        if (id in self.last_positions):
+            return self.last_positions[id]
+        return None
 
     def data_received(self, message):
         for detection in message['detections']:
@@ -35,5 +43,7 @@ class Gps:
             pitch = round(math.degrees(math.atan2(2*rot_x*rot_w + 2*rot_y*rot_z, 1 - 2*rot_x*rot_x - 2*rot_z*rot_z)) % 360, 0)
             yaw = round(math.degrees(math.asin(2*rot_x*rot_y + 2*rot_z*rot_w)) % 360, 0)
 
-            if (id == 53):
-                print(f'{id}: {x}/{y} / {roll}/{pitch}/{yaw}')
+            self.last_positions[id] = GpsPosition(id, x, y, pitch)
+
+            # Debug
+            #print(f'{id}: {x}/{y} / {roll}/{pitch}/{yaw}')
