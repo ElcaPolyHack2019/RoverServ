@@ -2,18 +2,21 @@ import threading
 import time
 import base64
 import roslibpy
+from .gpsposition import GpsPosition
 
 
 class Rover:
-    def __init__(self, rover_id: str, bridge_host: str, bridge_port: int):
+    def __init__(self, rover_id: str, bridge_host: str, bridge_port: int, tag: int):
         self.lock = threading.Lock()
 
         self.rover_id = rover_id
         self.bridge_host = bridge_host
         self.bridge_port = bridge_port
+        self.tag = tag
         self.gps_x = 0
         self.gps_y = 0
         self.gps_orientation = 0
+        self.gps_orientation_rad = 0
         self.client = None
         self.last_image = None
 
@@ -146,11 +149,11 @@ class Rover:
         result = service.call(request)
         return result
 
-    def update_gps(self):
-        # TODO
-        self.gps_x = 0
-        self.gps_y = 0
-        self.gps_orientation = 0
+    def update_gps(self, gps_position: GpsPosition):
+        self.gps_x = gps_position.x
+        self.gps_y = gps_position.y
+        self.gps_orientation = gps_position.orientation
+        self.gps_orientation_rad = gps_position.orientation_rad
 
     def get_topics(self):
         self.ensure_is_connected()
@@ -169,7 +172,9 @@ class Rover:
             'rover_id': self.rover_id,
             'bridge_host': self.bridge_host,
             'bridge_port': self.bridge_port,
+            'tag': self.tag,
             'gps_x': self.gps_x,
             'gps_y': self.gps_y,
             'gps_orientation': self.gps_orientation,
+            'gps_orientation_rad': self.gps_orientation_rad
         }
