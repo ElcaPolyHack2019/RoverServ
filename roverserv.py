@@ -143,6 +143,15 @@ def led(rover_id: str):
     rover.led()
     return jsonify({'success': 'ok'})
 
+@app.route("/api/<rover_id>/lidar")
+@swag_from("static/swagger-doc/lidar.yml")
+def lidar(rover_id: str):
+    rover = get_rover_by_id(rover_id)
+    if rover is None:
+        abort(404, description=f"Rover with id {rover_id} not found.")
+    data = rover.lidar()
+    return jsonify(data)
+
 ##############################
 # Misc
 ##############################

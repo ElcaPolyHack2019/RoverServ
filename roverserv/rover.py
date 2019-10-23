@@ -16,6 +16,7 @@ class Rover:
         self.gps_orientation = 0
         self.client = None
         self.last_image = None
+        self.last_lidar = None
 
     def __del__(self):
         if (self.client):
@@ -47,9 +48,12 @@ class Rover:
     def setup_listeners(self):
         self.imageListener = roslibpy.Topic(self.client, '/elcaduck/camera_node/image/compressed', 'sensor_msgs/CompressedImage', throttle_rate=1000)
         self.imageListener.subscribe(self.image_received_callback)
+        self.lidarListener = roslibpy.Topic(self.client, '/scan', 'sensor_msgs/LaserScan', throttle_rate=1000)
+        self.lidarListener.subscribe(self.lidar_received_callback)
 
     def release_listeners(self):
         self.imageListener.unsubscribe()
+        self.lidarListener.unsubscribe()
 
     def ensure_is_connected(self):
         self.lock.acquire()
@@ -145,6 +149,10 @@ class Rover:
         request = roslibpy.ServiceRequest({'data': 'RED'})
         result = service.call(request)
         return result
+    
+    def lidar(self):
+        self.ensure_is_connected()
+        return self.last_lidar
 
     def update_gps(self):
         # TODO
@@ -163,6 +171,9 @@ class Rover:
 
     def image_received_callback(self, message):
         self.last_image = message['data']
+    
+    def lidar_received_callback(self, message):
+        self.last_lidar = message
 
     def to_json(self):
         return {
