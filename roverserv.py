@@ -76,7 +76,7 @@ def topics(rover_id: str):
 @app.route("/api/<rover_id>/forward")
 @swag_from("static/swagger-doc/forward.yml")
 def forward(rover_id: str):
-    duration = float(is_none(request.args.get("t"), 1.0))
+    duration = float(is_none(request.args.get("duration"), 1.0))
     rover = get_rover_by_id(rover_id)
     if rover is None:
         abort(404, description=f"Rover with id {rover_id} not found.")
@@ -88,7 +88,7 @@ def forward(rover_id: str):
 @app.route("/api/<rover_id>/backward")
 @swag_from("static/swagger-doc/backward.yml")
 def backward(rover_id: str):
-    duration = float(is_none(request.args.get("t"), 1.0))
+    duration = float(is_none(request.args.get("duration"), 1.0))
     rover = get_rover_by_id(rover_id)
     if rover is None:
         abort(404, description=f"Rover with id {rover_id} not found.")
@@ -100,8 +100,8 @@ def backward(rover_id: str):
 @app.route("/api/<rover_id>/rotate")
 @swag_from("static/swagger-doc/rotate.yml")
 def rotate(rover_id: str):
-    duration = float(is_none(request.args.get("t"), 1.0))
-    direction = str(is_none(request.args.get("d"), "left"))
+    duration = float(is_none(request.args.get("duration"), 1.0))
+    direction = str(is_none(request.args.get("direction"), "left"))
     rover = get_rover_by_id(rover_id)
     if rover is None:
         abort(404, description=f"Rover with id {rover_id} not found.")
