@@ -125,6 +125,7 @@ def stop(rover_id: str):
 
 
 @app.route("/api/<rover_id>/image")
+@swag_from("static/swagger-doc/image.yml")
 def image(rover_id: str):
     rover = get_rover_by_id(rover_id)
     if rover is None:
