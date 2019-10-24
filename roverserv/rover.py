@@ -91,41 +91,32 @@ class Rover:
     def drive_backward(self, duration: float):
         self.ensure_is_connected()
 
-        talker = roslibpy.Topic(
-            self.client, '/elcaduck/joy', 'sensor_msgs/Joy')
-        talker.publish(roslibpy.Message({
+        self.joyPublisher.publish(roslibpy.Message({
             'buttons': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             'axes': [0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         }))
         time.sleep(duration)
         self.stop()
-        talker.unadvertise()
 
     def rotate_cw(self, duration: float):
         self.ensure_is_connected()
 
-        talker = roslibpy.Topic(
-            self.client, '/elcaduck/joy', 'sensor_msgs/Joy')
-        talker.publish(roslibpy.Message({
+        self.joyPublisher.publish(roslibpy.Message({
             'buttons': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             'axes': [0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0]
         }))
         time.sleep(duration)
         self.stop()
-        talker.unadvertise()
 
     def rotate_ccw(self, duration: float):
         self.ensure_is_connected()
 
-        talker = roslibpy.Topic(
-            self.client, '/elcaduck/joy', 'sensor_msgs/Joy')
-        talker.publish(roslibpy.Message({
+        self.joyPublisher.publish(roslibpy.Message({
             'buttons': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             'axes': [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0]
         }))
         time.sleep(duration)
         self.stop()
-        talker.unadvertise()
 
     def stop(self):
         self.ensure_is_connected()
@@ -152,7 +143,7 @@ class Rover:
         request = roslibpy.ServiceRequest({'data': 'RED'})
         result = service.call(request)
         return result
-    
+
     def lidar(self):
         self.ensure_is_connected()
         return self.last_lidar
@@ -174,7 +165,7 @@ class Rover:
 
     def image_received_callback(self, message):
         self.last_image = message['data']
-    
+
     def lidar_received_callback(self, message):
         self.last_lidar = message
 
