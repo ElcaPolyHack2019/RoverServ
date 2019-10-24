@@ -78,42 +78,46 @@ class Rover:
             self.setup_listeners()
         self.lock.release()
 
-    def drive_forward(self, duration: float):
+    def drive_forward(self, duration: float, power: float):
         self.ensure_is_connected()
+        power = self.normalize_power(power)
 
         self.joyPublisher.publish(roslibpy.Message({
             'buttons': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            'axes': [0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+            'axes': [0.0, power, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         }))
         time.sleep(duration)
         self.stop()
 
-    def drive_backward(self, duration: float):
+    def drive_backward(self, duration: float, power: float):
         self.ensure_is_connected()
+        power = self.normalize_power(power)
 
         self.joyPublisher.publish(roslibpy.Message({
             'buttons': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            'axes': [0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+            'axes': [0.0, -power, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         }))
         time.sleep(duration)
         self.stop()
 
-    def rotate_cw(self, duration: float):
+    def rotate_cw(self, duration: float, power: float):
         self.ensure_is_connected()
+        power = self.normalize_power(power)
 
         self.joyPublisher.publish(roslibpy.Message({
             'buttons': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            'axes': [0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0]
+            'axes': [0.0, 0.0, 0.0, -power, 0.0, 0.0, 0.0, 0.0]
         }))
         time.sleep(duration)
         self.stop()
 
-    def rotate_ccw(self, duration: float):
+    def rotate_ccw(self, duration: float, power: float):
         self.ensure_is_connected()
+        power = self.normalize_power(power)
 
         self.joyPublisher.publish(roslibpy.Message({
             'buttons': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            'axes': [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0]
+            'axes': [0.0, 0.0, 0.0, power, 0.0, 0.0, 0.0, 0.0]
         }))
         time.sleep(duration)
         self.stop()
@@ -180,3 +184,9 @@ class Rover:
             'gps_orientation': self.gps_orientation,
             'gps_orientation_rad': self.gps_orientation_rad
         }
+
+    @staticmethod
+    def normalize_power(power: float):
+        if (power > 1 or power < 0):
+            return 1
+        return power

@@ -27,17 +27,14 @@ class Gps:
         for detection in message['detections']:
             id = detection['id'][0]
 
-            position = Gps.invertY(detection['pose']['pose']['pose']['position'])
-            orientation = Gps.invertY(detection['pose']['pose']['pose']['orientation'])
-            reference = { 'w': 0.0, 'x': 1.0, 'y': 0.0, 'z': 0.0 }
-            rotated = Gps.mult(Gps.mult(orientation, reference), Gps.conjugate(orientation))
+            position = self.invertY(detection['pose']['pose']['pose']['position'])
+            orientation = self.invertY(detection['pose']['pose']['pose']['orientation'])
+            reference = {'w': 0.0, 'x': 1.0, 'y': 0.0, 'z': 0.0}
+            rotated = self.mult(self.mult(orientation, reference), self.conjugate(orientation))
             angle = math.atan2(rotated['y'], rotated['x']) * 180.0 / math.pi
 
             self.last_positions[id] = GpsPosition(id, position['x'], position['y'], angle)
-            # if (id == 53):
-            #     print(rotated)
-            #     print(angle)
-    
+
     @staticmethod
     def mult(p, q):
         return {
@@ -55,7 +52,7 @@ class Gps:
             'y': -q['y'],
             'z': -q['z'],
         }
-    
+
     @staticmethod
     def invertY(v):
         res = v.copy()

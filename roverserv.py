@@ -76,40 +76,43 @@ def topics(rover_id: str):
 @app.route("/api/<rover_id>/forward")
 @swag_from("static/swagger-doc/forward.yml")
 def forward(rover_id: str):
-    duration = float(is_none(request.args.get("duration"), 1.0))
+    duration = get_param_float(request, ["duration", "dur", "d"], 1.0)
+    power = get_param_float(request, ["power", "p"], 1.0)
     rover = get_rover_by_id(rover_id)
     if rover is None:
         abort(404, description=f"Rover with id {rover_id} not found.")
 
-    rover.drive_forward(duration)
+    rover.drive_forward(duration, power)
     return jsonify({'success': 'ok'})
 
 
 @app.route("/api/<rover_id>/backward")
 @swag_from("static/swagger-doc/backward.yml")
 def backward(rover_id: str):
-    duration = float(is_none(request.args.get("duration"), 1.0))
+    duration = get_param_float(request, ["duration", "dur", "d"], 1.0)
+    power = get_param_float(request, ["power", "p"], 1.0)
     rover = get_rover_by_id(rover_id)
     if rover is None:
         abort(404, description=f"Rover with id {rover_id} not found.")
 
-    rover.drive_backward(duration)
+    rover.drive_backward(duration, power)
     return jsonify({'success': 'ok'})
 
 
 @app.route("/api/<rover_id>/rotate")
 @swag_from("static/swagger-doc/rotate.yml")
 def rotate(rover_id: str):
-    duration = float(is_none(request.args.get("duration"), 1.0))
-    direction = str(is_none(request.args.get("direction"), "left"))
+    duration = get_param_float(request, ["duration", "dur", "d"], 1.0)
+    power = get_param_float(request, ["power", "p"], 1.0)
+    direction = get_param_str(request, ["direction", "dir"], "left")
     rover = get_rover_by_id(rover_id)
     if rover is None:
         abort(404, description=f"Rover with id {rover_id} not found.")
 
     if (direction == 'left' or direction == 'l' or direction == 'ccw'):
-        rover.rotate_ccw(duration)
+        rover.rotate_ccw(duration, power)
     else:
-        rover.rotate_cw(duration)
+        rover.rotate_cw(duration, power)
     return jsonify({'success': 'ok'})
 
 
@@ -149,6 +152,7 @@ def led(rover_id: str):
     rover.led()
     return jsonify({'success': 'ok'})
 
+
 @app.route("/api/<rover_id>/lidar")
 @swag_from("static/swagger-doc/lidar.yml")
 def lidar(rover_id: str):
@@ -167,11 +171,20 @@ def get_rover_by_id(rover_id: str):
     return next((rover for rover in rovers if rover.rover_id == rover_id), None)
 
 
-def is_none(value, alternative):
-    if value is None:
-        return alternative
-    else:
-        return value
+def get_param(request, names: [], default):
+    for name in names:
+        if (name in request.args):
+            return request.args.get(name)
+    return default
+
+
+def get_param_float(request, names: [], default):
+    return float(get_param(request, names, default))
+
+
+def get_param_str(request, names: [], default):
+    return str(get_param(request, names, default))
+
 
 ##############################
 # Main

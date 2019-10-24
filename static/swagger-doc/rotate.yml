@@ -1,4 +1,4 @@
-Rotate the rover in given direction for a given time.
+Rotate the rover in given direction for a given time and power.
 ---
 parameters:
   - name: rover_id
@@ -8,11 +8,15 @@ parameters:
   - name: duration
     in: query string
     type: float
-    description: Describes how long the rover moves forward. Default is 1.0.
+    description: Defines how long the action should run before stopping (in seconds). The default is 1.
   - name: direction
     in: query string
     type: string
-    description: The turning direction of the rover. Default is 'left'.
+    description: The turning direction of the rover. Valid values are 'left' or 'right'. The default is 'left'.
+  - name: power
+    in: query string
+    type: float
+    description: Defines how much power the motor should use. Valid values between 0 and 1. The default is 1.
 responses:
   404:
     description: The rover with the given id was not found.
