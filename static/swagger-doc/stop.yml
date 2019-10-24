@@ -1,4 +1,4 @@
-Stops the Rovers movements.
+Stop the rovers movements.
 ---
 parameters:
   - name: rover_id
