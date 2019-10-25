@@ -4,8 +4,11 @@ from .gpsposition import GpsPosition
 
 
 class Gps:
-    def __init__(self):
-        self.client = roslibpy.Ros(host='192.168.1.10', port=9090)
+    def __init__(self, ip: str, port: int):
+        self.ip = ip
+        self.port = port
+
+        self.client = roslibpy.Ros(host=self.ip, port=self.port)
         self.client.run()
 
         self.listener = roslibpy.Topic(self.client, '/tag_detections', 'apriltag_ros/AprilTagDetectionArray', throttle_rate=1000, queue_length=10)
