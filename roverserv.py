@@ -1,4 +1,5 @@
 from flask import Flask, Response, request, jsonify, abort, make_response
+from flask_cors import CORS
 from flasgger import Swagger, swag_from
 from roverserv import Rover
 from roverserv import Gps
@@ -11,6 +12,7 @@ import time
 ##############################
 
 app = Flask(__name__)
+CORS(app)
 # TODO: How to extract this into .yml?
 template = {
     "info": {
