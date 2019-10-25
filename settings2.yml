@@ -2,7 +2,7 @@ gps:
   ip: localhost
   port: 9090
 rovers: 
-  - name: Elcaduck
+  - name: elcaduck
     ip: '192.168.1.30'
     port: 9001
     tag: 50

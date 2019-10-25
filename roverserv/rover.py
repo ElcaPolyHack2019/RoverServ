@@ -42,14 +42,14 @@ class Rover:
 
     def setup_publishers(self):
         self.joyPublisher = roslibpy.Topic(
-            self.client, f'/{self.rover_id.lower()}/joy', 'sensor_msgs/Joy', queue_size=1, queue_length=1)
+            self.client, f'/{self.rover_id}/joy', 'sensor_msgs/Joy', queue_size=1, queue_length=1)
         self.joyPublisher.advertise()
 
     def release_publishers(self):
         self.joyPublisher.unadvertise()
 
     def setup_listeners(self):
-        self.imageListener = roslibpy.Topic(self.client, f'/{self.rover_id.lower()}/camera_node/image/compressed',
+        self.imageListener = roslibpy.Topic(self.client, f'/{self.rover_id}/camera_node/image/compressed',
                                             'sensor_msgs/CompressedImage', throttle_rate=1000)
         self.imageListener.subscribe(self.image_received_callback)
         self.lidarListener = roslibpy.Topic(self.client, '/scan', 'sensor_msgs/LaserScan', throttle_rate=1000)
@@ -143,7 +143,7 @@ class Rover:
         self.ensure_is_connected()
 
         service = roslibpy.Service(
-            self.client, f'/{self.rover_id.lower()}/led_emitter_node/set_pattern', 'std_msgs/String')
+            self.client, f'/{self.rover_id}/led_emitter_node/set_pattern', 'std_msgs/String')
         #request = roslibpy.ServiceRequest("pattern_name: {data: RED}")
         request = roslibpy.ServiceRequest({'data': 'RED'})
         result = service.call(request)
