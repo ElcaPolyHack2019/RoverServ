@@ -4,6 +4,7 @@ from flasgger import Swagger, swag_from
 from roverserv import Rover
 from roverserv import Gps
 import yaml
+import os
 
 import time
 
@@ -175,7 +176,8 @@ def get_param_str(request, names: [], default):
 def parse_settings():
     global rovers
     global gps
-    with open("settings.yml", 'r') as stream:
+    settingsFile = os.getenv("ROVERSERVER_SETTINGS", "settings.yml")
+    with open(settingsFile, 'r') as stream:
         try:
             dataMap = yaml.safe_load(stream)
             # Initialize the Gps
@@ -196,6 +198,6 @@ if __name__ == '__main__':
     # Initialize settings
     parse_settings()
     # Start the web server
-    port = 5000
+    port = int(os.getenv("ROVERSERV_PORT", 5000))
     host = "0.0.0.0"
     app.run(host=host, debug=True, port=port)
