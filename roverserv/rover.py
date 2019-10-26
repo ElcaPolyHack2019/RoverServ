@@ -2,6 +2,7 @@ import threading
 import time
 import base64
 import roslibpy
+import time
 from .gpsposition import GpsPosition
 
 
@@ -17,6 +18,7 @@ class Rover:
         self.gps_y = 0
         self.gps_orientation = 0
         self.gps_orientation_rad = 0
+        self.gps_timestamp = 0
         self.client = None
         self.last_image = None
         self.last_lidar = None
@@ -158,6 +160,7 @@ class Rover:
         self.gps_y = gps_position.y
         self.gps_orientation = gps_position.orientation
         self.gps_orientation_rad = gps_position.orientation_rad
+        self.gps_timestamp = time.time()
 
     def get_topics(self):
         self.ensure_is_connected()
@@ -183,7 +186,8 @@ class Rover:
             'gps_x': self.gps_x,
             'gps_y': self.gps_y,
             'gps_orientation': self.gps_orientation,
-            'gps_orientation_rad': self.gps_orientation_rad
+            'gps_orientation_rad': self.gps_orientation_rad,
+            'gps_timestamp': self.gps_timestamp
         }
 
     @staticmethod
