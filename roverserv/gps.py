@@ -36,6 +36,9 @@ class Gps:
             rotated = self.mult(self.mult(orientation, reference), self.conjugate(orientation))
             angle = math.atan2(rotated['y'], rotated['x']) * 180.0 / math.pi
 
+            # Adjust for "stretching" of the camera image
+            position['x'] = position['x'] / 1.5
+
             self.last_positions[id] = GpsPosition(id, position['x'], position['y'], angle)
 
     @staticmethod
