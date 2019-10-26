@@ -11,7 +11,7 @@ class Gps:
         self.client = roslibpy.Ros(host=self.ip, port=self.port)
         self.client.run()
 
-        self.listener = roslibpy.Topic(self.client, '/tag_detections', 'apriltag_ros/AprilTagDetectionArray', throttle_rate=1000, queue_length=10)
+        self.listener = roslibpy.Topic(self.client, '/tag_detections', 'apriltag_ros/AprilTagDetectionArray', throttle_rate=500, queue_length=1, queue_size=1)
         self.listener.subscribe(self.data_received)
 
         self.last_positions = {}

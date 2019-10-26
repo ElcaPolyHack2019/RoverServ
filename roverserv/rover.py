@@ -50,9 +50,9 @@ class Rover:
 
     def setup_listeners(self):
         self.imageListener = roslibpy.Topic(self.client, f'/{self.rover_id}/camera_node/image/compressed',
-                                            'sensor_msgs/CompressedImage', throttle_rate=1000)
+                                            'sensor_msgs/CompressedImage', throttle_rate=500, queue_length=1, queue_size=1)
         self.imageListener.subscribe(self.image_received_callback)
-        self.lidarListener = roslibpy.Topic(self.client, '/scan', 'sensor_msgs/LaserScan', throttle_rate=1000)
+        self.lidarListener = roslibpy.Topic(self.client, '/scan', 'sensor_msgs/LaserScan', throttle_rate=500, queue_length=1, queue_size=1)
         self.lidarListener.subscribe(self.lidar_received_callback)
 
     def release_listeners(self):
